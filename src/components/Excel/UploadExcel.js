@@ -57,7 +57,7 @@ function UploadExcel() {
 
     const reader = new FileReader();
 
-    reader.onload = (e) => {
+    reader.onload = function (e) {
       const data = new Uint8Array(e.target.result);
       const workbook = XLSX.read(data, { type: 'array' });
       const sheetName = workbook.SheetNames[0];
@@ -74,24 +74,49 @@ function UploadExcel() {
     const filteredData = excelData.filter(
       (row, index) => index === 0 || filteredDuplicates.includes(row)
     );
-    const wb = XLSX.utils.book_new();
-    const wsData = [excelData[0], ...filteredData];
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-    // Formatar colunas de F a N como moeda (exceto na primeira linha)
-    for (let i = 5; i <= 13; i++) {
-      const columnLetter = XLSX.utils.encode_col(i);
-      for (let j = 2; j <= filteredData.length; j++) {
-        const cell = ws[`${columnLetter}${j}`];
-        if (cell && cell.t === 'n') {
-          const cellValue = cell.v;
-          if (cellValue && typeof cellValue === 'number') {
-            ws[`${columnLetter}${j}`].z = '#,##0.00';
+    const updatedData = filteredData.map((row, rowIndex) => {
+      const product = row[9];
+      let maxPrice = 0;
+
+      filteredDuplicates.forEach((r) => {
+        const rProduct = r[9];
+        const price = parseFloat(r[13]) || 0;
+
+        if (rProduct === product && price > maxPrice) {
+          maxPrice = price;
+        }
+      });
+
+      const updatedRow = row.map((value, cellIndex) => {
+        if (cellIndex === 13 && value === maxPrice) {
+          return typeof value === 'number'
+            ? `${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)} (valor máximo)`
+            : value;
+        } else {
+          return value;
+        }
+      });
+
+      return updatedRow;
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(updatedData);
+
+    // Formatar colunas M (13) e N (14) como moeda, ignorando o cabeçalho
+    const range = XLSX.utils.decode_range(ws['!ref']); // Obter o intervalo de células
+    for (let i = range.s.r + 1; i <= range.e.r; i++) {
+      for (let j = range.s.c; j <= range.e.c; j++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: i, c: j });
+        if (j === 12 || j === 13) {
+          if (typeof ws[cellAddress].v === 'number') {
+            ws[cellAddress].z = '#,##0.00';
           }
         }
       }
     }
 
+    const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Filtered Data');
 
     const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
@@ -131,17 +156,17 @@ function UploadExcel() {
             const product = row[9];
             let maxPrice = 0;
             let maxIndex = -1;
-  
+
             filteredDuplicates.forEach((r, i) => {
               const rProduct = r[9];
               const price = parseFloat(r[13]) || 0;
-  
+
               if (rProduct === product && price > maxPrice) {
                 maxPrice = price;
                 maxIndex = i;
               }
             });
-  
+
             return (
               <tr
                 key={rowIndex}
@@ -202,7 +227,6 @@ function UploadExcel() {
       </table>
     </div>
   );
-  
 
   return (
     <div style={{ textAlign: 'center' }}>
