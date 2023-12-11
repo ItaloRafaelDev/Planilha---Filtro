@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import './app.css';
 
+
 function UploadExcel() {
   const [excelData, setExcelData] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -150,7 +151,6 @@ function UploadExcel() {
       <h3>Registros com Produto e Fornecedor Iguais</h3>
       <h4>Total de Registros: {duplicates.length}</h4>
       <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-        {/* ... (seu código de cabeçalho da tabela) */}
         <tbody>
           {filteredDuplicates.map((row, rowIndex) => {
             const product = row[9];
@@ -229,17 +229,20 @@ function UploadExcel() {
   );
 
   return (
-    <div style={{ textAlign: 'center' }}>
-      <h2>Verificação De Diferença</h2>
-      <input type="file" onChange={handleFileUpload} style={{ marginBottom: '20px' }} />
+<div style={{ textAlign: 'center' }}>
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <h2 style={{ fontSize: '40px', marginRight: '50px', marginTop: '110px' }}>Verificação De Dados</h2>
+    <img src="logo.ico" alt="Descrição da imagem" style={{ width: '290px', height: '200px', marginTop: '50px' }} />
+  </div>
+      <input type="file" onChange={handleFileUpload} style={{ marginBottom: '30px' }} />
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-        <span style={{ marginRight: '10px', fontSize: '30px' }}>Buscar</span>
+        <span style={{ marginRight: '10px', fontSize: '30px' }}>Buscar :</span>
         <input
           type="text"
           placeholder="Digite para buscar..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          style={{ padding: '10px', fontSize: '16px', flex: '1' }}
+          style={{ padding: '10px', fontSize: '22px', flex: '1' }}
         />
       </div>
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
